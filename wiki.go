@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -80,9 +82,13 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func main() {
+	port := flag.Int("p", 8080, "tcp port number")
+	flag.Parse()
+
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
-	http.ListenAndServe(":8080", nil)
+
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
