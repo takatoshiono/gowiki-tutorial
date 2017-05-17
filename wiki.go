@@ -10,8 +10,9 @@ import (
 )
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title    string
+	Body     []byte
+	HTMLBody template.HTML
 }
 
 var templates = template.Must(template.ParseFiles("tmpl/edit.html", "tmpl/view.html"))
@@ -21,6 +22,16 @@ var linkPattern = regexp.MustCompile(`\[((?:[A-Z]{1}[a-z]+){1,})\]`)
 func (p *Page) save() error {
 	filename := p.Title + ".txt"
 	return ioutil.WriteFile("data/"+filename, p.Body, 0600)
+}
+
+func (p *Page) convertBodyToHTML() {
+	escapedHTML := template.HTMLEscapeString(string(p.Body))
+	p.HTMLBody = template.HTML(linkPattern.ReplaceAllStringFunc(escapedHTML, convertLink))
+}
+
+func convertLink(s string) string {
+	name := s[1 : len(s)-1]
+	return fmt.Sprintf("<a href=\"/view/%s\">%s</a>", name, name)
 }
 
 func loadPage(title string) (*Page, error) {
@@ -39,11 +50,6 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	}
 }
 
-func convertLink(b []byte) []byte {
-	name := b[1 : len(b)-1]
-	return []byte(fmt.Sprintf("<a href=\"/view/%s\">%s</a>", name, name))
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/view/FrontPage", http.StatusFound)
 }
@@ -54,7 +60,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-	p.Body = linkPattern.ReplaceAllFunc(p.Body, convertLink)
+	p.convertBodyToHTML()
 	renderTemplate(w, "view", p)
 }
 
