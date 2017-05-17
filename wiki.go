@@ -90,5 +90,7 @@ func main() {
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
 
+	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("public/styles"))))
+
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
