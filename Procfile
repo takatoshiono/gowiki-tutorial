@@ -1,1 +1,1 @@
-web: ./wiki
+web: ./bin/gowiki-tutorial
