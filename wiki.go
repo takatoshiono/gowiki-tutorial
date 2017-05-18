@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 )
 
@@ -95,7 +96,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 }
 
 func main() {
-	port := flag.Int("p", 8080, "tcp port number")
+	port := flag.String("p", os.Getenv("PORT"), "tcp port number")
 	flag.Parse()
 
 	http.HandleFunc("/", indexHandler)
@@ -105,5 +106,5 @@ func main() {
 
 	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("public/styles"))))
 
-	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	http.ListenAndServe(fmt.Sprintf(":%s", *port), nil)
 }
